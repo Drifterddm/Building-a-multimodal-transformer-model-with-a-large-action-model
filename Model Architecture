@@ -1,0 +1,45 @@
+Transformer Model Design
+
+Text Encoder: Use a pre-trained language model like BERT.
+Image Encoder: Use a pre-trained ResNet.
+Audio Encoder: Use a model like Wav2Vec2.
+Fusion Layer: Combine the features from all encoders.
+Action Head: Predict actions based on the fused representation.
+
+Example: Model Definition (models/transformers.py)
+
+import torch
+import torch.nn as nn
+from transformers import AutoModel
+import torchvision.models as models
+
+class MultimodalTransformer(nn.Module):
+    def __init__(self, text_model_name='bert-base-uncased', image_model_name='resnet18', audio_model_name='wav2vec2-base', action_size=10):
+        super(MultimodalTransformer, self).__init__()
+        
+        # Text Encoder
+        self.text_encoder = AutoModel.from_pretrained(text_model_name)
+        
+        # Image Encoder
+        self.image_encoder = models.__dict__[image_model_name](pretrained=True)
+        self.image_encoder.fc = nn.Linear(self.image_encoder.fc.in_features, 512)
+        
+        # Audio Encoder
+        self.audio_encoder = AutoModel.from_pretrained(audio_model_name)
+        
+        # Fusion Layer
+        self.fusion_layer = nn.Linear(512 * 3, 512)
+        
+        # Action Head
+        self.action_head = nn.Linear(512, action_size)
+
+    def forward(self, input_ids, attention_mask, image, audio):
+        text_output = self.text_encoder(input_ids=input_ids, attention_mask=attention_mask)[0][:, 0, :]
+        image_output = self.image_encoder(image).flatten(start_dim=1)
+        audio_output = self.audio_encoder(audio)[0][:, 0, :]
+        
+        fused_output = torch.cat((text_output, image_output, audio_output), dim=1)
+        fused_output = self.fusion_layer(fused_output)
+        action_logits = self.action_head(fused_output)
+        
+        return action_logits
