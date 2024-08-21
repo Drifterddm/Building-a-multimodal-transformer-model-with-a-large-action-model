@@ -1,0 +1,45 @@
+Inference Script (inference/inference.py)
+This script will allow you to perform inference on new data, given a trained model.
+
+import torch
+from transformers import AutoTokenizer
+from models.transformers import MultimodalTransformer
+from data.utils import preprocess_text, preprocess_image, preprocess_audio
+
+def inference(model, text, image_path, audio_path, device):
+    tokenizer = AutoTokenizer.from_pretrained('bert-base-uncased')
+    
+    input_ids, attention_mask = preprocess_text(text, tokenizer)
+    image = preprocess_image(image_path)
+    audio = preprocess_audio(audio_path)
+    
+    model.eval()
+    with torch.no_grad():
+        action_logits = model(input_ids.to(device), attention_mask.to(device), image.to(device), audio.to(device))
+    
+    return action_logits.argmax(dim=-1).item()
+
+# Example usage
+device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
+model = MultimodalTransformer().to(device)
+model.load_state_dict(torch.load('path_to_trained_model.pth'))
+
+text = "Sample text input"
+image_path = "path_to_image.jpg"
+audio_path = "path_to_audio.wav"
+
+predicted_action = inference(model, text, image_path, audio_path, device)
+print(f'Predicted Action: {predicted_action}')
+
+
+Demo Script (inference/demo.py)
+This script can be used to create a simple command-line or web-based demo to showcase the model.
+
+# This can be expanded into a Flask web app for showcasing the model
+if __name__ == '__main__':
+    text_input = input("Enter text: ")
+    image_path = input("Enter image path: ")
+    audio_path = input("Enter audio path: ")
+    
+    predicted_action = inference(model, text_input, image_path, audio_path, device)
+    print(f'Predicted Action: {predicted_action}')
