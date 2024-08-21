@@ -1,38 +1,39 @@
 Data Acquisition
 To handle diverse modalities, you must gather datasets from different sources:
 
-Text: Books, articles, code snippets, social media posts.
-Images: Datasets like ImageNet, COCO.
-Audio: LibriSpeech, VoxCeleb.
-Video: YouTube-8M, Vimeo.
-PDFs: Scientific articles, legal documents.
-Web: Crawl or use web APIs to gather content.
-Search: Clickstream data, search query logs.
+Text: Books, articles, code snippets, social media posts...
+Images: Datasets like ImageNet, COCO...
+Audio: LibriSpeech, VoxCeleb...
+Video: YouTube-8M, Vimeo...
+PDFs: Scientific articles, legal documents...
+Web: Crawl or use web APIs to gather content...
+Search: Clickstream data, search query logs...
+
+
 Data Preprocessing
 Each modality requires specific preprocessing steps:
 
 Text:
-
 Tokenization, lowercasing, padding.
 Use libraries like Hugging Face's transformers and spaCy.
-Image:
 
+Image:
 Resize, normalization, augmentation.
 Use torchvision.transforms.
-Audio:
 
+Audio:
 Feature extraction (e.g., MFCC, spectrogram).
 Use librosa.
-Video:
 
+Video:
 Frame extraction, optical flow calculation.
 Use OpenCV.
-PDF:
 
+PDF:
 Text extraction, table recognition.
 Use PyPDF2, pdfplumber.
-Web:
 
+Web:
 Content extraction, link analysis.
 Use BeautifulSoup, Scrapy.
 
