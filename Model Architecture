@@ -43,3 +43,75 @@ class MultimodalTransformer(nn.Module):
         action_logits = self.action_head(fused_output)
         
         return action_logits
+
+
+
+Training and Evaluation
+
+Training Script (training/train.py)
+
+import torch
+from torch.utils.data import DataLoader
+from transformers import AdamW
+from models.transformers import MultimodalTransformer
+from data.utils import preprocess_text, preprocess_image, preprocess_audio
+
+def train_model(model, dataloader, optimizer, criterion, device):
+    model.train()
+    total_loss = 0
+    for batch in dataloader:
+        input_ids = batch['input_ids'].to(device)
+        attention_mask = batch['attention_mask'].to(device)
+        image = batch['image'].to(device)
+        audio = batch['audio'].to(device)
+        action = batch['action'].to(device)
+        
+        optimizer.zero_grad()
+        action_logits = model(input_ids, attention_mask, image, audio)
+        loss = criterion(action_logits, action)
+        loss.backward()
+        optimizer.step()
+        total_loss += loss.item()
+    
+    return total_loss / len(dataloader)
+
+# Example usage
+device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
+model = MultimodalTransformer().to(device)
+criterion = torch.nn.CrossEntropyLoss()
+optimizer = AdamW(model.parameters(), lr=5e-5)
+train_dataloader = DataLoader(...)  # Fill this with your dataset
+
+for epoch in range(epochs):
+    train_loss = train_model(model, train_dataloader, optimizer, criterion, device)
+    print(f'Epoch {epoch + 1}, Loss: {train_loss:.4f}')
+
+
+
+Evaluation Script (training/evaluate.py)
+
+import torch
+
+def evaluate_model(model, dataloader, criterion, device):
+    model.eval()
+    total_loss = 0
+    with torch.no_grad():
+        for batch in dataloader:
+            input_ids = batch['input_ids'].to(device)
+            attention_mask = batch['attention_mask'].to(device)
+            image = batch['image'].to(device)
+            audio = batch['audio'].to(device)
+            action = batch['action'].to(device)
+            
+            action_logits = model(input_ids, attention_mask, image, audio)
+            loss = criterion(action_logits, action)
+            total_loss += loss.item()
+    
+    return total_loss / len(dataloader)
+
+# Example usage
+eval_dataloader = DataLoader(...)  # Fill this with your validation dataset
+eval_loss = evaluate_model(model, eval_dataloader, criterion, device)
+print(f'Evaluation Loss: {eval_loss:.4f}')
+
+
